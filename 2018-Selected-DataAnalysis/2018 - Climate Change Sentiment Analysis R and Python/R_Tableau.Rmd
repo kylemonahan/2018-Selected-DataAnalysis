@@ -1,0 +1,75 @@
+---
+title: "Connecting R and Tableau"
+author: Kyle Monahan
+date: 10-22-2018
+output: html_notebook
+---
+#Background
+This is an R Markdown notebook highlighting the R code you need to connect R and Tableau. 
+
+This was completed using the following software: 
+
+* RStudio 1.1.456 - Mozilla/5.0 (Macintosh; Intel Mac OS X 10_13_6) AppleWebKit/605.1.15 
+* Tableau 10.5 
+
+#Getting Started
+To start working with R, we have to use `RServe`, which is an R server. This is a server that is listening for R commands to pass to the R kernel. The default port for this server is **6311**, but I found port **84** worked for me. 
+
+The code to install (commented out with #) and run Rserver is below. Note that the argument parameter no-save is required on *nix (Linux, Mac) systems. If you're on Windows, you probably don't need this. 
+
+```{r}
+
+#install.packages("Rserve")
+library(Rserve)
+Rserve(args = "--no-save") 
+
+```
+
+#Opening RServe in Tableau 
+
+Open Tableau and go to: `Help > Setting and Performance > Managing External Service Connections`. This is where you can connect to the RServer you just started. From there, you can load R locally by putting in localhost and port **6311**. Note that if you were running Rserve on a virtual machine, you could direct that here as well. 
+
+Press Enter. If you see "Successfully connected to the RServe service" then you are all set. 
+
+#Running an example batch of code
+
+You can find more information at the links I provided below, but the key notes are: 
+
+* You can use the following functions to bring things into and out of Tableau: 
+
+* 
+
+
+#Running this example in R
+The code we are running in Tableau looks like: 
+
+> `SCRIPT_STR("library(syuzhet);r<-rescale(get_sentiment(.arg1,method = 'syuzhet'));ifelse(abs(r) > 0.3, 'positive',  'negative')",ATTR([Tweet]))`
+
+In R, this would look like: 
+
+```{r}
+#Set working directory
+setwd("/Users/kmonah02/Desktop") #To my local directory
+#Import data 
+library(readr)
+library(stringr)
+arg1 <- read_csv("1377884570_tweet_global_warming.csv") #Doesn't have to be called arg1, I just named it that for consistency, please email kyle DOT monahan @ tufts.edu if you want to check out this sample file, or download from here: https://www.figure-eight.com/data-for-everyone/
+
+#Clean the tweets
+arg1$cleantweet=stringr::str_replace_all(arg1$tweet,"[^[:graph:]]", " ") 
+
+#Load the data into the sentiment analysis machine (as a character vector)
+library(syuzhet)
+r<-rescale(get_sentiment(arg1$cleantweet,method = 'syuzhet'))
+ifelse(test = abs(r) > 0.3, yes =  'positive',no = 'negative')
+
+#Save out the data
+write.csv(x = arg1,file = "1377884570_tweet_global_warming_clean.csv")
+
+
+```
+
+
+
+#More information
+https://www.tableau.com/learn/whitepapers/using-r-and-tableau
